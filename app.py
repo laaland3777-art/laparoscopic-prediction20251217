@@ -42,7 +42,7 @@ col1, col2 = st.columns(2)
 with col1:
     # 1. Abdominal wall adipose area
     f1 = st.number_input(
-        "Abdominal wall adipose area (cm²)", 
+        "Abdominal wall adipose area (mm²)", 
         min_value=0.0, 
         value=100.0, 
         step=1.0,
@@ -80,7 +80,7 @@ with col1:
 with col2:
     # 5. Intra-abdominal adipose area
     f5 = st.number_input(
-        "Intra-abdominal adipose area (cm²)", 
+        "Intra-abdominal adipose area (mm²)", 
         min_value=0.0, 
         value=150.0, 
         step=1.0,
@@ -153,3 +153,4 @@ if st.button("Predict Difficulty", type="primary"):
 # --- 页脚 ---
 st.markdown("---")
 st.caption("Model based on Weighted Ensemble (RF, SVM, LR, GNB, AdaBoost).")
+
