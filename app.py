@@ -13,7 +13,8 @@ st.set_page_config(
 @st.cache_resource
 def load_model_and_scaler():
     try:
-        # 确保文件名和你上传到 GitHub 的完全一致
+        # 请确保 GitHub 上的文件名是 'ensemble_model.pkl' 和 'scaler.pkl'
+        # 如果你之前上传的是 xgboost_model.pkl，请在这里改名
         model = joblib.load('ensemble_model.pkl')
         scaler = joblib.load('scaler.pkl')
         return model, scaler
@@ -65,17 +66,15 @@ with col1:
         help="Radiodensity of SMV fat in Hounsfield Units."
     )
     
-    # 4. Type of Henle's trunk (修改点：罗马数字映射)
-    # 定义映射关系：显示的是罗马数字，实际传给模型的是 0,1,2,3
+    # 4. Type of Henle's trunk (罗马数字 I-IV)
     henle_map = {"I": 0, "II": 1, "III": 2, "IV": 3}
     
     f4_display = st.selectbox(
         "Type of Henle's trunk",
-        options=["I", "II", "III", "IV"], # 下拉菜单显示的选项
+        options=["I", "II", "III", "IV"], 
         index=0,
         help="Anatomical variation type of the Gastrocolic trunk of Henle."
     )
-    # 将用户选的 "I" 转换回数字 0
     f4 = henle_map[f4_display]
 
 with col2:
@@ -88,23 +87,23 @@ with col2:
         help="Visceral fat area."
     )
     
-    # 6. Presence of the right colonic artery
+    # 6. Presence of the right colonic artery (修改点：去掉了 (0) 和 (1))
     f6_display = st.selectbox(
         "Presence of the right colonic artery",
-        options=["Absent (0)", "Present (1)"],
+        options=["Absent", "Present"], # 这里只显示单词，更美观
         index=0
     )
-    f6 = 1 if "Present" in f6_display else 0
+    # 转换逻辑：如果是 Present 则为 1，否则为 0
+    f6 = 1 if f6_display == "Present" else 0
     
-    # 7. Plasma triglycerides (修改点：改为分类变量)
-    # 0代表Normal，1代表High
+    # 7. Plasma triglycerides (Normal/High)
     f7_display = st.selectbox(
         "Plasma triglycerides",
-        options=["Normal", "High"], # 只显示 Normal 和 High
+        options=["Normal", "High"], 
         index=0,
-        help="Normal = 0, High = 1"
+        help="Normal level vs High level"
     )
-    # 转换逻辑：如果是 Normal 则 f7=0，否则 f7=1
+    # 转换逻辑：Normal -> 0, High -> 1
     f7 = 0 if f7_display == "Normal" else 1
 
 # --- 预测逻辑 ---
@@ -121,14 +120,13 @@ if st.button("Predict Difficulty", type="primary"):
             'Plasma triglycerides'
         ]
         
-        # 注意：这里放入的是转换后的数字 f4 和 f7，而不是显示的字符串
+        # 这里的 f4, f6, f7 已经是转换好的数字了
         input_data = pd.DataFrame([[f1, f2, f3, f4, f5, f6, f7]], columns=feature_names)
         
-        # 2. 标准化 (非常重要，因为你训练时用了 StandardScaler)
+        # 2. 标准化
         input_scaled = scaler.transform(input_data)
         
         # 3. 预测概率
-        # model.predict_proba 返回 [[prob_class_0, prob_class_1]]
         probability = model.predict_proba(input_scaled)[0][1]
         prediction_class = 1 if probability >= 0.5 else 0
         
@@ -136,7 +134,7 @@ if st.button("Predict Difficulty", type="primary"):
         st.markdown("---")
         st.subheader("Prediction Result")
         
-        # 进度条显示概率
+        # 进度条
         st.progress(probability)
         
         result_col1, result_col2 = st.columns(2)
