@@ -13,6 +13,7 @@ st.set_page_config(
 @st.cache_resource
 def load_model_and_scaler():
     try:
+        # 确保文件名和你上传到 GitHub 的完全一致
         model = joblib.load('ensemble_model.pkl')
         scaler = joblib.load('scaler.pkl')
         return model, scaler
@@ -64,15 +65,18 @@ with col1:
         help="Radiodensity of SMV fat in Hounsfield Units."
     )
     
-    # 4. Type of Henle's trunk
-    # 假设这是分类变量，根据你的数据可能是 0, 1, 2 等。这里提供一个下拉菜单。
-    # 如果你的原始数据是连续数值，请改回 number_input
-    f4 = st.selectbox(
+    # 4. Type of Henle's trunk (修改点：罗马数字映射)
+    # 定义映射关系：显示的是罗马数字，实际传给模型的是 0,1,2,3
+    henle_map = {"I": 0, "II": 1, "III": 2, "IV": 3}
+    
+    f4_display = st.selectbox(
         "Type of Henle's trunk",
-        options=[0, 1, 2, 3], # 请根据你实际数据的类别修改这些选项
+        options=["I", "II", "III", "IV"], # 下拉菜单显示的选项
         index=0,
         help="Anatomical variation type of the Gastrocolic trunk of Henle."
     )
+    # 将用户选的 "I" 转换回数字 0
+    f4 = henle_map[f4_display]
 
 with col2:
     # 5. Intra-abdominal adipose area
@@ -85,7 +89,6 @@ with col2:
     )
     
     # 6. Presence of the right colonic artery
-    # 这是一个二分类变量
     f6_display = st.selectbox(
         "Presence of the right colonic artery",
         options=["Absent (0)", "Present (1)"],
@@ -93,13 +96,16 @@ with col2:
     )
     f6 = 1 if "Present" in f6_display else 0
     
-    # 7. Plasma triglycerides
-    f7 = st.number_input(
-        "Plasma triglycerides (mmol/L)", 
-        min_value=0.0, 
-        value=1.5, 
-        step=0.1
+    # 7. Plasma triglycerides (修改点：改为分类变量)
+    # 0代表Normal，1代表High
+    f7_display = st.selectbox(
+        "Plasma triglycerides",
+        options=["Normal", "High"], # 只显示 Normal 和 High
+        index=0,
+        help="Normal = 0, High = 1"
     )
+    # 转换逻辑：如果是 Normal 则 f7=0，否则 f7=1
+    f7 = 0 if f7_display == "Normal" else 1
 
 # --- 预测逻辑 ---
 if st.button("Predict Difficulty", type="primary"):
@@ -115,6 +121,7 @@ if st.button("Predict Difficulty", type="primary"):
             'Plasma triglycerides'
         ]
         
+        # 注意：这里放入的是转换后的数字 f4 和 f7，而不是显示的字符串
         input_data = pd.DataFrame([[f1, f2, f3, f4, f5, f6, f7]], columns=feature_names)
         
         # 2. 标准化 (非常重要，因为你训练时用了 StandardScaler)
