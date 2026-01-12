@@ -51,7 +51,7 @@ with col1:
     
     # 2. SMV adipose thickness
     f2 = st.number_input(
-        "ileocolic perivascular adipose thickness (mm)", 
+        "Ileocolic perivascular adipose thickness (mm)", 
         min_value=0.0, 
         value=10.0, 
         step=0.1,
@@ -60,7 +60,7 @@ with col1:
     
     # 3. SMV adipose density
     f3 = st.number_input(
-        "ileocolic perivascular adipose density (HU)", 
+        "Ileocolic perivascular adipose density (HU)", 
         value=-80.0, 
         step=1.0,
         help="Radiodensity of SMV fat in Hounsfield Units."
@@ -153,5 +153,6 @@ if st.button("Predict Difficulty", type="primary"):
 # --- 页脚 ---
 st.markdown("---")
 st.caption("Model based on Weighted Ensemble (RF, SVM, LR, GNB, AdaBoost).")
+
 
 
